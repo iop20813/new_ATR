@@ -340,7 +340,7 @@ class ATRStrategyUI:
         
         # 股票代碼
         ttk.Label(main_frame, text="股票代碼:").grid(row=0, column=0, sticky=tk.W, pady=5)
-        self.ticker_var = tk.StringVar(value="0050.TW")
+        self.ticker_var = tk.StringVar(value="006208.TW")
         ttk.Entry(main_frame, textvariable=self.ticker_var, width=20).grid(row=0, column=1, sticky=tk.W, pady=5)
         
         # 開始日期
@@ -426,7 +426,7 @@ class ATRStrategyUI:
 def parse_args():
     parser = argparse.ArgumentParser(description='ATR 策略回測系統')
     parser.add_argument('--ui', action='store_true', help='啟動UI介面')
-    parser.add_argument('--ticker', type=str, default='0050.TW', help='股票代碼')
+    parser.add_argument('--ticker', type=str, default='006208.TW', help='股票代碼')
     parser.add_argument('--start_date', type=str, default='2010-01-01', help='開始日期')
     parser.add_argument('--atr_period', type=int, default=14, help='ATR 週期')
     parser.add_argument('--high_period', type=int, default=20, help='高點週期')
