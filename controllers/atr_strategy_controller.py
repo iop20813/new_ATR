@@ -1,7 +1,5 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 import sys
 import os
@@ -12,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from strategies.atr_strategy import ATRStrategy
 from strategies.ma_strategy import MAStrategy
 from strategies.rsi_strategy import RSIStrategy
+from views.atr_strategy_view import ATRStrategyView
 
 class StrategyController:
     def __init__(self, main_frame):
@@ -151,49 +150,16 @@ class StrategyController:
 class ATRStrategyController:
     def __init__(self, root):
         self.root = root
-        self.root.title("交易策略回測系統")
-        
-        # 創建主框架
-        self.main_frame = ttk.Frame(self.root, padding="10")
-        self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        
-        # 創建策略控制器
-        self.strategy_controller = StrategyController(self.main_frame)
-        
-        # 創建按鈕區域
-        self.create_buttons()
-        
-        # 創建結果顯示區域
-        self.create_result_area()
-        
-        # 創建圖表區域
-        self.create_chart_area()
-    
-    def create_buttons(self):
-        """創建按鈕區域"""
-        button_frame = ttk.Frame(self.main_frame)
-        button_frame.grid(row=10, column=0, columnspan=2, pady=10)
-        
-        ttk.Button(button_frame, text="執行回測", command=self.run_backtest).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="清除結果", command=self.clear_results).pack(side=tk.LEFT, padx=5)
-    
-    def create_result_area(self):
-        """創建結果顯示區域"""
-        result_frame = ttk.LabelFrame(self.main_frame, text="回測結果", padding="5")
-        result_frame.grid(row=11, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
-        
-        self.result_text = tk.Text(result_frame, height=10, width=50)
-        self.result_text.pack(fill=tk.BOTH, expand=True)
-    
-    def create_chart_area(self):
-        """創建圖表區域"""
-        chart_frame = ttk.LabelFrame(self.main_frame, text="價格走勢圖", padding="5")
-        chart_frame.grid(row=12, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
-        
-        self.fig, self.ax = plt.subplots(figsize=(8, 4))
-        self.canvas = FigureCanvasTkAgg(self.fig, master=chart_frame)
-        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-    
+        # 建立視圖，並將控制器動作綁定
+        self.view = ATRStrategyView(
+            root=self.root,
+            on_run_backtest=self.run_backtest,
+            on_clear_results=self.clear_results,
+        )
+
+        # 策略控制器（參數區域要掛在視圖的 main_frame 上）
+        self.strategy_controller = StrategyController(self.view.main_frame)
+
     def run_backtest(self):
         """執行回測"""
         try:
@@ -204,55 +170,14 @@ class ATRStrategyController:
             results = strategy.backtest()
             
             # 顯示結果
-            self.display_results(results)
+            self.view.display_results(results)
             
             # 繪製圖表
-            self.plot_results(strategy.data, results['trades'])
+            self.view.plot_results(strategy.data, results['trades'])
             
         except Exception as e:
             messagebox.showerror("錯誤", str(e))
     
-    def display_results(self, results):
-        """顯示回測結果"""
-        self.result_text.delete(1.0, tk.END)
-        
-        self.result_text.insert(tk.END, "=== 回測結果 ===\n")
-        self.result_text.insert(tk.END, f"總報酬率: {results['total_return']:.2%}\n")
-        self.result_text.insert(tk.END, f"夏普比率: {results['sharpe_ratio']:.2f}\n")
-        self.result_text.insert(tk.END, f"最大回撤: {results['max_drawdown']:.2%}\n")
-        self.result_text.insert(tk.END, f"勝率: {results['win_rate']:.2%}\n")
-        self.result_text.insert(tk.END, f"交易次數: {results['num_trades']}\n")
-    
-    def plot_results(self, data, trades):
-        """繪製回測結果圖表"""
-        self.ax.clear()
-        
-        # 繪製價格走勢
-        self.ax.plot(data.index, data['Close'], label='收盤價')
-        
-        # 繪製交易點
-        for trade in trades:
-            entry_date = trade['entry_date']
-            exit_date = trade['exit_date']
-            entry_price = trade['entry_price']
-            exit_price = trade['exit_price']
-            
-            # 繪製進場點
-            self.ax.scatter(entry_date, entry_price, color='g', marker='^')
-            # 繪製出場點
-            self.ax.scatter(exit_date, exit_price, color='r', marker='v')
-        
-        self.ax.set_title('價格走勢與交易點')
-        self.ax.set_xlabel('日期')
-        self.ax.set_ylabel('價格')
-        self.ax.legend()
-        self.ax.grid(True)
-        
-        # 更新圖表
-        self.canvas.draw()
-    
     def clear_results(self):
         """清除結果"""
-        self.result_text.delete(1.0, tk.END)
-        self.ax.clear()
-        self.canvas.draw() 
+        self.view.clear_results()
