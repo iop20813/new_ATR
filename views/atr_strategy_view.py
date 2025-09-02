@@ -9,9 +9,19 @@ class ATRStrategyView:
         self.root = root
         self.root.title("交易策略回測系統")
 
+        # 讓主視窗可隨大小變化自動分配空間
+        self.root.rowconfigure(0, weight=1)
+        self.root.columnconfigure(0, weight=1)
+
         # 主框架，提供給參數區與其他子區域使用
         self.main_frame = ttk.Frame(self.root, padding="10")
         self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # 讓主要內容在縱向可伸縮（結果/圖表區域擁有權重）
+        self.main_frame.rowconfigure(10, weight=0)  # 按鈕列不伸展
+        self.main_frame.rowconfigure(11, weight=1)  # 結果區域
+        self.main_frame.rowconfigure(12, weight=3)  # 圖表區域更大權重
+        self.main_frame.columnconfigure(0, weight=1)
 
         # 按鈕區域
         self._create_buttons(on_run_backtest, on_clear_results)
@@ -24,7 +34,7 @@ class ATRStrategyView:
 
     def _create_buttons(self, on_run_backtest, on_clear_results):
         button_frame = ttk.Frame(self.main_frame)
-        button_frame.grid(row=10, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=10, column=0, columnspan=2, pady=10, sticky=(tk.W, tk.E))
 
         ttk.Button(button_frame, text="執行回測", command=on_run_backtest).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="清除結果", command=on_clear_results).pack(side=tk.LEFT, padx=5)
@@ -40,9 +50,25 @@ class ATRStrategyView:
         chart_frame = ttk.LabelFrame(self.main_frame, text="價格走勢圖", padding="5")
         chart_frame.grid(row=12, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
 
-        self.fig, self.ax = plt.subplots(figsize=(8, 4))
+        self.fig, self.ax = plt.subplots(figsize=(8, 4), constrained_layout=True)
         self.canvas = FigureCanvasTkAgg(self.fig, master=chart_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        # 視窗改變大小時，延遲重繪，避免閃爍
+        self.canvas.get_tk_widget().bind("<Configure>", self._on_resize)
+
+    def _on_resize(self, event):
+        # 根據當前小工具尺寸同步調整 Figure 寬高，確保圖表隨視窗放大縮小
+        try:
+            widget = self.canvas.get_tk_widget()
+            width_px = max(widget.winfo_width(), 100)
+            height_px = max(widget.winfo_height(), 100)
+            dpi = self.fig.get_dpi()
+            self.fig.set_size_inches(width_px / dpi, height_px / dpi, forward=True)
+            # 重新調整子圖邊界，確保完整顯示（避免被分割）
+            self.fig.tight_layout()
+            self.canvas.draw_idle()
+        except Exception:
+            pass
 
     def display_results(self, results):
         self.result_text.delete(1.0, tk.END)
