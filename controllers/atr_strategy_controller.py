@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from strategies.atr_strategy import ATRStrategy
 from strategies.ma_strategy import MAStrategy
 from strategies.rsi_strategy import RSIStrategy
+from strategies.supertrend_strategy import SuperTrendStrategy
 from views.atr_strategy_view import ATRStrategyView
 
 class StrategyController:
@@ -18,7 +19,8 @@ class StrategyController:
         self.strategies = {
             "ATR 策略": ATRStrategy,
             "移動平均線策略": MAStrategy,
-            "RSI 策略": RSIStrategy
+            "RSI 策略": RSIStrategy,
+            "SuperTrend 策略": SuperTrendStrategy
         }
         self.param_vars = {}
         self.create_ui()
@@ -112,6 +114,17 @@ class StrategyController:
             ttk.Label(self.main_frame, text="超買閾值:").grid(row=row, column=0, sticky=tk.W)
             ttk.Entry(self.main_frame, textvariable=self.param_vars['overbought']).grid(row=row, column=1, sticky=tk.W)
     
+        elif strategy_name == "SuperTrend 策略":
+            self.param_vars['period'] = tk.IntVar(value=10)
+            self.param_vars['multiplier'] = tk.DoubleVar(value=3.0)
+
+            ttk.Label(self.main_frame, text="SuperTrend 週期:").grid(row=row, column=0, sticky=tk.W)
+            ttk.Entry(self.main_frame, textvariable=self.param_vars['period']).grid(row=row, column=1, sticky=tk.W)
+            row += 1
+
+            ttk.Label(self.main_frame, text="乘數:").grid(row=row, column=0, sticky=tk.W)
+            ttk.Entry(self.main_frame, textvariable=self.param_vars['multiplier']).grid(row=row, column=1, sticky=tk.W)
+
     def on_strategy_change(self, event):
         """當策略改變時更新參數輸入"""
         self.create_strategy_params()
@@ -145,6 +158,13 @@ class StrategyController:
                 period=self.param_vars['period'].get(),
                 oversold=self.param_vars['oversold'].get(),
                 overbought=self.param_vars['overbought'].get()
+            )
+        elif strategy_name == "SuperTrend 策略":
+            return strategy_class(
+                ticker=self.ticker_var.get(),
+                start_date=self.start_date_var.get(),
+                period=self.param_vars['period'].get(),
+                multiplier=self.param_vars['multiplier'].get()
             )
 
 class ATRStrategyController:

@@ -5,12 +5,13 @@ from controllers.atr_strategy_controller import ATRStrategyController
 from strategies.atr_strategy import ATRStrategy
 from strategies.ma_strategy import MAStrategy
 from strategies.rsi_strategy import RSIStrategy
+from strategies.supertrend_strategy import SuperTrendStrategy
 
 def parse_args():
     parser = argparse.ArgumentParser(description='交易策略回測系統')
     parser.add_argument('--cli', action='store_true', help='使用命令列模式')
     parser.add_argument('--strategy', type=str, default='atr', 
-                       choices=['atr', 'ma', 'rsi'], help='選擇策略 (atr, ma 或 rsi)')
+                       choices=['atr', 'ma', 'rsi', 'supertrend'], help='選擇策略 (atr, ma, rsi 或 supertrend)')
     parser.add_argument('--ticker', type=str, default='006208.TW', help='股票代碼')
     parser.add_argument('--start_date', type=str, default='2020-01-01', help='開始日期')
     # ATR 策略參數
@@ -26,6 +27,9 @@ def parse_args():
     parser.add_argument('--rsi_period', type=int, default=14, help='RSI 週期')
     parser.add_argument('--oversold', type=int, default=30, help='超賣閾值')
     parser.add_argument('--overbought', type=int, default=70, help='超買閾值')
+    # SuperTrend 策略參數
+    parser.add_argument('--st_period', type=int, default=10, help='SuperTrend 週期')
+    parser.add_argument('--st_multiplier', type=float, default=3.0, help='SuperTrend 乘數')
     return parser.parse_args()
 
 def plot_results(df, trades, strategy_type='atr'):
@@ -110,6 +114,13 @@ def main():
                 period=args.rsi_period,
                 oversold=args.oversold,
                 overbought=args.overbought
+            )
+        elif args.strategy == 'supertrend':
+            strategy = SuperTrendStrategy(
+                ticker=args.ticker,
+                start_date=args.start_date,
+                period=args.st_period,
+                multiplier=args.st_multiplier
             )
         
         # 執行回測
