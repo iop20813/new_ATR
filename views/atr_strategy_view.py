@@ -20,7 +20,7 @@ class ATRStrategyView:
         # 讓主要內容在縱向可伸縮（結果/圖表區域擁有權重）
         self.main_frame.rowconfigure(10, weight=0)  # 按鈕列不伸展
         self.main_frame.rowconfigure(11, weight=1)  # 結果區域
-        self.main_frame.rowconfigure(12, weight=3)  # 圖表區域更大權重
+        self.main_frame.rowconfigure(12, weight=4)  # 圖表區域更大權重
         self.main_frame.columnconfigure(0, weight=1)
 
         # 按鈕區域
@@ -54,7 +54,7 @@ class ATRStrategyView:
         self.canvas = FigureCanvasTkAgg(self.fig, master=chart_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         # 視窗改變大小時，延遲重繪，避免閃爍
-        self.canvas.get_tk_widget().bind("<Configure>", self._on_resize)
+        #self.canvas.get_tk_widget().bind("<Configure>", self._on_resize)
 
     def _on_resize(self, event):
         # 根據當前小工具尺寸同步調整 Figure 寬高，確保圖表隨視窗放大縮小
@@ -64,8 +64,6 @@ class ATRStrategyView:
             height_px = max(widget.winfo_height(), 100)
             dpi = self.fig.get_dpi()
             self.fig.set_size_inches(width_px / dpi, height_px / dpi, forward=True)
-            # 重新調整子圖邊界，確保完整顯示（避免被分割）
-            self.fig.tight_layout()
             self.canvas.draw_idle()
         except Exception:
             pass
