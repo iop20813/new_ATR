@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from strategies.atr_strategy import ATRStrategy
 from strategies.ma_strategy import MAStrategy
+from strategies.ma_hold_strategy import MAHoldStrategy
 from strategies.rsi_strategy import RSIStrategy
 from strategies.supertrend_strategy import SuperTrendStrategy
 from views.atr_strategy_view import ATRStrategyView
@@ -19,6 +20,7 @@ class StrategyController:
         self.strategies = {
             "ATR 策略": ATRStrategy,
             "移動平均線策略": MAStrategy,
+            "移動平均線持倉策略": MAHoldStrategy,
             "RSI 策略": RSIStrategy,
             "SuperTrend 策略": SuperTrendStrategy
         }
@@ -98,6 +100,17 @@ class StrategyController:
             ttk.Label(self.main_frame, text="長期均線週期:").grid(row=row, column=0, sticky=tk.W)
             ttk.Entry(self.main_frame, textvariable=self.param_vars['long_period']).grid(row=row, column=1, sticky=tk.W)
             
+        elif strategy_name == "移動平均線持倉策略":
+            self.param_vars['short_period'] = tk.IntVar(value=5)
+            self.param_vars['long_period'] = tk.IntVar(value=20)
+            
+            ttk.Label(self.main_frame, text="短期均線週期:").grid(row=row, column=0, sticky=tk.W)
+            ttk.Entry(self.main_frame, textvariable=self.param_vars['short_period']).grid(row=row, column=1, sticky=tk.W)
+            row += 1
+            
+            ttk.Label(self.main_frame, text="長期均線週期:").grid(row=row, column=0, sticky=tk.W)
+            ttk.Entry(self.main_frame, textvariable=self.param_vars['long_period']).grid(row=row, column=1, sticky=tk.W)
+            
         elif strategy_name == "RSI 策略":
             self.param_vars['period'] = tk.IntVar(value=14)
             self.param_vars['oversold'] = tk.IntVar(value=30)
@@ -145,6 +158,13 @@ class StrategyController:
                 max_hold_days=self.param_vars['max_hold_days'].get()
             )
         elif strategy_name == "移動平均線策略":
+            return strategy_class(
+                ticker=self.ticker_var.get(),
+                start_date=self.start_date_var.get(),
+                short_period=self.param_vars['short_period'].get(),
+                long_period=self.param_vars['long_period'].get()
+            )
+        elif strategy_name == "移動平均線持倉策略":
             return strategy_class(
                 ticker=self.ticker_var.get(),
                 start_date=self.start_date_var.get(),
